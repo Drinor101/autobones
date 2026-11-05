@@ -1,0 +1,9 @@
+{
+  "name": "autobones-test-react17",
+  "private": true,
+  "description": "React 17, kept apart from the main project so the test suite can run the library on the oldest React it claims to support.",
+  "dependencies": {
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
+  }
+}

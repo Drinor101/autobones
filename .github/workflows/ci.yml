@@ -43,6 +43,13 @@ jobs:
         if: matrix.node == 22
         run: npx playwright install --with-deps chromium firefox webkit
 
+      # The library is also tested on React 17 and React 19, each installed in its own folder.
+      - name: Install React 17 and 19 for the compatibility tests
+        if: matrix.node == 22
+        run: |
+          npm ci --prefix tests/react17
+          npm ci --prefix tests/react19
+
       - name: Run the browser tests
         if: matrix.node == 22
         run: npm run test:e2e

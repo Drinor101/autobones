@@ -1,5 +1,5 @@
 // Bundled by tests/serve.mjs. Imports the built dist/react.js, the same file npm users get.
-import { StrictMode, createRef } from "react";
+import { StrictMode, createRef, version } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { Skeleton, useSkeleton } from "../../dist/react.js";
 
@@ -58,6 +58,7 @@ function App(p: Props) {
 const render = () => root!.render(<StrictMode><App {...props} /></StrictMode>);
 
 (window as any).rt = {
+  version,
   mount(initial: Partial<Props> = {}) {
     props = { ...props, ...initial };
     root = createRoot(document.getElementById("root")!);

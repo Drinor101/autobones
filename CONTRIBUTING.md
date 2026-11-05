@@ -52,7 +52,7 @@ The landing page in `site/` works the same way (`cd site && npm install && npm r
 The tests run the real built library (`dist/`) in real browsers: Chromium, Firefox and WebKit (Safari's engine), using [Playwright](https://playwright.dev).
 
 ```bash
-npm run test:install   # once: downloads the three browsers
+npm run test:install   # once: downloads the three browsers, and React 17 and 19 for the compatibility tests
 npm test               # builds, then runs everything
 npm run test:e2e       # runs everything without rebuilding
 npx playwright test core.spec.ts --project=chromium   # one file, one browser
@@ -67,7 +67,8 @@ What is covered, in `tests/e2e/`:
 | `memory.spec.ts` | Layout memory, reload, shipped layouts at several widths, export and import |
 | `batching.spec.ts` | Many skeletons on one page redraw together, unchanged bones are not rebuilt, and one failing skeleton does not break the rest |
 | `themes.spec.ts` | A layout recorded in a light page and shown in a dark one, and the other way round |
-| `react.spec.ts` | The React `<Skeleton>`, `useSkeleton`, refs, StrictMode, unmounting |
+| `react.spec.ts` | The React `<Skeleton>`, `useSkeleton`, refs, StrictMode, unmounting, run on React 18 and on React 19 |
+| `react17.spec.ts` | The same checks on React 17, the oldest version the package supports |
 | `vue-svelte.spec.ts` | The Vue component and directive, and the Svelte action |
 | `package.spec.ts` | The built package in plain Node: every entry as ESM and CJS, server rendering, `style.css` |
 

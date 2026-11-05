@@ -83,6 +83,8 @@ function Stats({ loading }: { loading: boolean }) {
 }
 ```
 
+Works with React 17, 18 and 19. All three run in the test suite on every push.
+
 **Next.js and server rendering.** `autobones/react` is marked `"use client"`, so you can import it in App Router files as is. On the server it renders your children normally, with no warnings; the skeleton takes over once the page hydrates, so server-rendered content can be visible for a moment first.
 
 ## Vue

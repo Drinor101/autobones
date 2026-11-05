@@ -8,17 +8,23 @@ const rt = {
   refs: (page: Page) => page.evaluate(() => (window as any).rt.refs()),
 };
 
-test.describe("React adapter", () => {
+// The same tests run on React 18 (the repo's own) and on React 19 (tests/react19). React 17 has its own file.
+for (const [version, fixture] of [["18", "react.html"], ["19", "react19.html"]] as const) {
+test.describe(`React ${version}`, () => {
   let errors: string[];
 
   test.beforeEach(async ({ page }) => {
     errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await openFixture(page, "react.html");
+    await openFixture(page, fixture);
   });
 
   test.afterEach(() => {
     expect(errors, "no uncaught errors").toEqual([]);
+  });
+
+  test(`the fixture really is running React ${version}`, async ({ page }) => {
+    expect(await page.evaluate(() => (window as any).rt.version)).toMatch(new RegExp(`^${version}\\.`));
   });
 
   test("<Skeleton> and useSkeleton show bones while loading and clear when loading ends", async ({ page }) => {
@@ -88,3 +94,4 @@ test.describe("React adapter", () => {
     await page.waitForTimeout(400); // pending timers (capture, fade) must not throw after unmount
   });
 });
+}
