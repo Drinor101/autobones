@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest an option, an adapter or a behavior
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the problem first, even if you already have a solution in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like autobones to do?
+      description: An example of how you would call it is perfect.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What have you tried instead?

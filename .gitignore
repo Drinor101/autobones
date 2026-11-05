@@ -1,0 +1,14 @@
+# dependencies
+node_modules
+
+# build output (npm run build recreates these)
+dist
+style.css
+*.tgz
+
+# tooling
+.playwright-mcp
+.DS_Store
+
+# personal roadmap, kept on my machine only
+PLAN.md

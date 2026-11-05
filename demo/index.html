@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>autobones demo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Crect x='6' y='9' width='20' height='4' rx='2' fill='%23fff'/%3E%3Crect x='6' y='19' width='13' height='4' rx='2' fill='%23fff'/%3E%3C/svg%3E" />
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#16181d; --muted:#5d6370; --line:#e3e6eb; --accent:#4f46e5; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1115; --card:#181b21; --text:#eceef2; --muted:#9aa1ad; --line:#272b33; --accent:#818cf8; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--text); }
+  main { max-width: 960px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { margin:0 0 4px; font-size: 28px; }
+  .lead { margin:0 0 24px; color: var(--muted); }
+  .controls { display:flex; flex-wrap:wrap; gap:8px; margin-bottom: 24px; }
+  .controls button, .controls select { font:inherit; padding:8px 14px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--text); cursor:pointer; }
+  .controls button.primary { background: var(--accent); border-color: var(--accent); color:#fff; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border:1px solid var(--line); border-radius: 14px; overflow:hidden; }
+  .card .cover { display:block; width:100%; aspect-ratio: 16/9; object-fit: cover; background: var(--line); }
+  .card .body { padding: 16px; }
+  .author { display:flex; align-items:center; gap: 10px; margin-bottom: 12px; }
+  .avatar { width:40px; height:40px; border-radius:50%; background: linear-gradient(135deg,#f59e0b,#ec4899); flex:none; }
+  .author .name { font-weight:600; font-size:15px; }
+  .author .meta { font-size:13px; color:var(--muted); }
+  .card h3 { margin: 0 0 6px; font-size: 18px; line-height:1.3; }
+  .card p { margin:0 0 14px; color: var(--muted); font-size: 14px; }
+  .card .actions { display:flex; gap:8px; }
+  .card .actions button { font:inherit; font-size:14px; padding:6px 12px; border-radius:8px; border:1px solid var(--line); background:transparent; color:var(--text); }
+  h2 { font-size:18px; margin: 40px 0 12px; }
+  .profile { display:flex; gap:20px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:20px; }
+  .profile .avatar { width:72px; height:72px; }
+  .stats { display:flex; gap:24px; margin-top:8px; font-size:14px; color:var(--muted); }
+  .stats b { color: var(--text); }
+</style>
+</head>
+<body>
+<main>
+  <h1>autobones</h1>
+  <p class="lead">Skeletons generated from your real layout. No hand-drawn placeholder shapes.</p>
+
+  <div class="controls">
+    <button class="primary" id="toggle">Show content</button>
+    <select id="animation" aria-label="Animation">
+      <option value="shimmer">Shimmer</option>
+      <option value="pulse">Pulse</option>
+      <option value="none">None</option>
+    </select>
+  </div>
+
+  <!-- Web Component usage -->
+  <auto-skeleton id="feed" loading class="grid">
+    <!-- cards are rendered by script below with placeholder data -->
+  </auto-skeleton>
+
+  <h2>Vanilla JS: createSkeleton()</h2>
+  <div class="profile" id="profile">
+    <div class="avatar"></div>
+    <div>
+      <div class="author"><span class="name" style="font-size:20px">Placeholder Name</span></div>
+      <p class="meta" style="margin:0;color:var(--muted)">Frontend engineer building delightful loading states for the web</p>
+      <div class="stats"><span><b>1,204</b> followers</span><span><b>318</b> following</span><span><b>52</b> posts</span></div>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import "../dist/element.js";
+  import { createSkeleton } from "../dist/index.js";
+
+  const placeholder = { name: "Loading name", time: "2 min read", title: "A placeholder title that wraps onto two lines", body: "Some placeholder body text that takes up roughly the same space as the real thing will.", img: "" };
+  const real = [
+    { name: "Ada Park", time: "4 min read", title: "Why skeletons beat spinners", body: "Skeleton screens set expectations about layout, so the page feels faster even when it isn't.", img: "https://picsum.photos/seed/a/640/360" },
+    { name: "Liam Chen", time: "6 min read", title: "Measuring layout without layout thrash", body: "Batch your reads, write once, and let ResizeObserver tell you when things move.", img: "https://picsum.photos/seed/b/640/360" },
+    { name: "Noor Haddad", time: "3 min read", title: "Reduced motion is not optional", body: "Shimmer is fun until it isn't. Respect the user's settings by default.", img: "https://picsum.photos/seed/c/640/360" },
+  ];
+
+  const card = (d) => `
+    <article class="card">
+      <img class="cover" alt="" ${d.img ? `src="${d.img}"` : ""} />
+      <div class="body">
+        <div class="author"><div class="avatar"></div><div><div class="name">${d.name}</div><div class="meta">${d.time}</div></div></div>
+        <h3>${d.title}</h3>
+        <p>${d.body}</p>
+        <div class="actions"><button>Like</button><button>Share</button></div>
+      </div>
+    </article>`;
+
+  const feed = document.getElementById("feed");
+  const profile = createSkeleton(document.getElementById("profile"));
+  let loading = true;
+  feed.innerHTML = [placeholder, placeholder, placeholder].map(card).join("");
+
+  document.getElementById("toggle").onclick = (e) => {
+    loading = !loading;
+    feed.innerHTML = (loading ? [placeholder, placeholder, placeholder] : real).map(card).join("");
+    feed.loading = loading;
+    profile.setLoading(loading);
+    e.target.textContent = loading ? "Show content" : "Show skeleton";
+  };
+  document.getElementById("animation").onchange = (e) => {
+    feed.setAttribute("animation", e.target.value);
+    profile.setOptions({ animation: e.target.value });
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+name: Bug report
+description: Something looks wrong, throws, or does not match the docs
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you expect, and what did you see instead? Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: A CodeSandbox or StackBlitz link, or the smallest snippet of your component and the skeleton options you use.
+    validations:
+      required: true
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      options: [React, Vue, Svelte, Web Component, Plain JS]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: autobones version
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: "Chrome 130 on Windows 11"
+    validations:
+      required: true
