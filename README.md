@@ -1,7 +1,15 @@
-# autobones
+<p align="center">
+  <img src="site/public/logo.svg" width="88" height="88" alt="autobones logo" />
+</p>
 
-[![CI](https://github.com/Drinor101/autobones/actions/workflows/ci.yml/badge.svg)](https://github.com/Drinor101/autobones/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/github/license/Drinor101/autobones)](LICENSE)
+<h1 align="center">autobones</h1>
+
+<p align="center"><strong>Skeleton loaders that build themselves from your real UI.</strong></p>
+
+<p align="center">
+  <a href="https://github.com/Drinor101/autobones/actions/workflows/ci.yml"><img src="https://github.com/Drinor101/autobones/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Drinor101/autobones" alt="License: MIT" /></a>
+</p>
 
 Auto-layout skeleton loaders. Instead of hand-drawing placeholder shapes, autobones renders **your real component**, measures its text lines, images, avatars, buttons and cards, then draws matching skeleton bones on top. Change the component and the skeleton updates itself.
 

@@ -38,9 +38,16 @@ jobs:
       # Checks that TypeScript resolves the types for every entry point, as ESM and as CommonJS.
       - run: npx --yes @arethetypeswrong/cli --pack . --exclude-entrypoints ./style.css
 
-      # The React example installs the library from this folder, so it checks the real build output.
+      # The React example and the landing page install the library from this folder,
+      # so building them checks the real build output.
       - name: Build the React example
         working-directory: examples/react
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build the landing page
+        working-directory: site
         run: |
           npm ci
           npm run build

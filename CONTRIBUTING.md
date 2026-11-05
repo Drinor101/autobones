@@ -27,6 +27,8 @@ npm run dev                         # http://localhost:5173
 
 There is also a framework-free page in `demo/` (`npm run demo`, then open `/demo/`).
 
+The landing page in `site/` works the same way (`cd site && npm install && npm run dev`). It is deployed to Netlify from `netlify.toml`.
+
 ## Where things are
 
 | File | What it does |
@@ -34,6 +36,8 @@ There is also a framework-free page in `demo/` (`npm run demo`, then open `/demo
 | `src/core.ts` | The measuring engine, layout memory and `createSkeleton()` |
 | `src/react.tsx`, `vue.ts`, `svelte.ts`, `element.ts` | One thin adapter per framework |
 | `scripts/` | Build helpers (`style.css`, the `"use client"` directive) |
+| `examples/react` | A small React app that copies well |
+| `site/` | The landing page (Vite + React), deployed to Netlify |
 
 ## Ground rules
 

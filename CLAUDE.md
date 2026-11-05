@@ -36,6 +36,7 @@ Framework-agnostic **auto-layout skeleton loader** library. Instead of hand-made
 - `src/element.ts`: `<auto-skeleton>` Web Component (SSR-safe base class)
 - `scripts/write-css.mjs`: writes `style.css` from `STYLES` for strict-CSP users
 - `demo/index.html`: demo page using `dist/`
+- `site/`: the public landing page (Vite + React 19, `cd site && npm run dev`), deployed to Netlify by `netlify.toml` (it builds the library first, then the site, and publishes `site/dist`). It uses the real library via `file:..` and dedupes React like `examples/react`. Its "Measured" hero view draws the output of the library's own `measureBones()`. `vite.config.ts` writes Netlify's `URL` into the Open Graph tags so link previews get an absolute image address. `public/og.png` (1200x630) and `public/apple-touch-icon.png` are generated images; `public/logo.svg` is the logo source (also used in the README).
 - `examples/react`: Vite + React 19 app (`cd examples/react && npm run dev`) with `<Skeleton>` (placeholder data and layout-memory-only) and `useSkeleton`. It depends on `file:../..` and `vite.config.ts` dedupes React, because the linked package resolves the root's React 18 devDependency otherwise. After changing `src/`, run `npm run build` in the root first.
 
 ## Commands
@@ -45,7 +46,9 @@ Framework-agnostic **auto-layout skeleton loader** library. Instead of hand-made
 
 ## Status and known gaps
 - Core, React adapter and Web Component were verified in Chrome (light/dark, mobile width, memory, shipped layouts, delay/minDuration/fade).
-- **Not yet verified:** the tsup build (dist was produced with esbuild), the Vue adapter, Firefox/WebKit.
+- The tsup build is verified (typecheck, publint, attw, and a clean-copy run of the CI and Netlify build commands).
+- Vue (`<Skeleton>` and `v-skeleton`, boolean and options forms) and the Svelte action were smoke-tested in Chrome: show/hide, restart, live option changes, unmount/destroy cleanup. That used hand-written render functions and calling the action directly, so **single-file components and the Svelte compiler were not exercised**, and there is no `examples/vue` or `examples/svelte` yet.
+- **Not yet verified:** Firefox/WebKit, and there is no automated test suite yet (PLAN.md section 2).
 - Known issues are listed in PLAN.md section 2.3.
 
 ## Conventions

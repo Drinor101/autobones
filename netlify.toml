@@ -1,0 +1,22 @@
+# Deploys the landing page in site/. The page runs the library from this repo,
+# so the library is built first, then the site.
+[build]
+  command = "npm ci && npm run build && cd site && npm ci && npm run build"
+  publish = "site/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Built files have a content hash in the name, so they can be cached for good.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
