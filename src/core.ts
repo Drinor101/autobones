@@ -51,6 +51,8 @@ export interface Bone {
   kind: "text" | "media" | "box" | "surface";
   /** Extra inline CSS for surfaces (background, border, shadow). */
   style?: string;
+  /** A theme-neutral version of `style`, drawn instead if the page went from light to dark (or back) since this was recorded. */
+  plain?: string;
 }
 
 export interface SkeletonController {
@@ -231,10 +233,10 @@ export function measureBones(root: HTMLElement, opts: SkeletonOptions = {}): Bon
   const solid = opts.boneSelector ? `${MEDIA_SELECTOR},${opts.boneSelector}` : MEDIA_SELECTOR;
   const range = root.ownerDocument.createRange();
 
-  const push = (r: DOMRect | { left: number; top: number; width: number; height: number }, radius: string, kind: Bone["kind"], style?: string) => {
+  const push = (r: DOMRect | { left: number; top: number; width: number; height: number }, radius: string, kind: Bone["kind"], style?: string, plain?: string) => {
     if (r.width < 1 || r.height < 1) return;
     if (clips.length && (kind === "media" || kind === "box")) radius = clipRadius(r, radius, clips);
-    bones.push({ x: r.left - ox, y: r.top - oy, width: r.width, height: r.height, radius, kind, style });
+    bones.push({ x: r.left - ox, y: r.top - oy, width: r.width, height: r.height, radius, kind, style, plain });
   };
 
   const walk = (el: Element) => {
@@ -278,13 +280,18 @@ export function measureBones(root: HTMLElement, opts: SkeletonOptions = {}): Bon
       // Containers with their own chrome (cards, panels) keep it, drawn under their bones.
       if (hasVisibleBox(cs) || cs.boxShadow !== "none") {
         const r = child.getBoundingClientRect();
-        const border = ["Top", "Right", "Bottom", "Left"]
-          .map((side) => {
-            const k = (p: string) => cs.getPropertyValue(`border-${side.toLowerCase()}-${p}`);
-            return `border-${side.toLowerCase()}:${k("width")} ${k("style")} ${k("color")}`;
-          })
-          .join(";");
-        push(r, cs.borderRadius, "surface", `background:${cs.backgroundColor};${border};box-shadow:${cs.boxShadow}`);
+        const sides = ["top", "right", "bottom", "left"].map((side) => {
+          const k = (p: string) => cs.getPropertyValue(`border-${side}-${p}`);
+          return [side, `${k("width")} ${k("style")}`, k("color")] as const;
+        });
+        const borders = (color?: string) => sides.map(([side, line, own]) => `border-${side}:${line} ${color ?? own}`).join(";");
+        push(
+          r,
+          cs.borderRadius,
+          "surface",
+          `background:${cs.backgroundColor};${borders()};box-shadow:${cs.boxShadow}`,
+          `background:transparent;${borders("var(--ab-base)")};box-shadow:none`,
+        );
       }
       const clip = clipOf(child, cs);
       if (clip) clips.push(clip);
@@ -309,6 +316,8 @@ export interface LayoutSnapshot {
   width: number;
   /** Container border-box height (px) when captured. */
   height: number;
+  /** Whether the page was light or dark when this was recorded. Older files have none. */
+  tone?: "light" | "dark";
   bones: Bone[];
 }
 
@@ -347,6 +356,7 @@ const { own, shipped, recorded } = store;
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
 const compact = (snap: LayoutSnapshot): LayoutSnapshot => ({
+  ...snap,
   width: r1(snap.width),
   height: r1(snap.height),
   bones: snap.bones.map((b) => ({ ...b, x: r1(b.x), y: r1(b.y), width: r1(b.width), height: r1(b.height) })),
@@ -481,6 +491,24 @@ if (typeof window !== "undefined") {
   w.autobones ??= { exportLayouts, clearLayouts };
 }
 
+/** Used for a surface when the page changed tone and an older layout has no theme-neutral version. */
+const PLAIN_SURFACE = "background:transparent;border:1px solid var(--ab-base);box-shadow:none";
+
+/**
+ * Whether the page behind `el` is light or dark, judged by the first opaque background at or above it.
+ * This follows a site's own theme switch, not only the operating system setting.
+ */
+function toneOf(el: Element): "light" | "dark" {
+  for (let n: Element | null = el; n; n = n.parentElement) {
+    const m = /^rgba?\((\d+)[, ]+(\d+)[, ]+(\d+)(?:[,/ ]+([\d.]+))?/.exec(getComputedStyle(n).backgroundColor);
+    if (m && (m[4] === undefined || parseFloat(m[4]) > 0.5)) {
+      // Perceived brightness, 0 to 255.
+      return (+m[1] * 299 + +m[2] * 587 + +m[3] * 114) / 1000 < 128 ? "dark" : "light";
+    }
+  }
+  return typeof matchMedia !== "undefined" && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 const hasLive = (bones: Bone[]) => bones.some((b) => b.kind !== "surface");
 const prefersReducedMotion = () =>
   typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -549,7 +577,14 @@ export function createSkeleton(
     const width = root.clientWidth || snap.width;
     const sx = snap.width ? width / snap.width : 1;
     setMinHeight(snap.height);
-    return snap.bones.map((b) => ({ ...b, x: b.x * sx, width: b.width * sx }));
+    // Colors recorded in a light page look wrong on a dark one (and the other way round), so draw a neutral outline instead.
+    const toneChanged = !!snap.tone && snap.tone !== toneOf(root);
+    return snap.bones.map((b) => ({
+      ...b,
+      x: b.x * sx,
+      width: b.width * sx,
+      ...(toneChanged && b.kind === "surface" ? { style: b.plain ?? PLAIN_SURFACE } : {}),
+    }));
   };
 
   const render = () => {
@@ -609,7 +644,7 @@ export function createSkeleton(
     if (!opts.name || wanted || shown) return;
     const bones = measureBones(root, opts);
     if (!hasLive(bones)) return;
-    saveLayout(opts.name, { width: root.clientWidth, height: root.getBoundingClientRect().height, bones }, opts.persist !== false);
+    saveLayout(opts.name, { width: root.clientWidth, height: root.getBoundingClientRect().height, tone: toneOf(root), bones }, opts.persist !== false);
   };
 
   /** Capture right away, and again once images and fonts settle. */

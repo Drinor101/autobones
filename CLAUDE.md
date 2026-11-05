@@ -21,6 +21,7 @@ Framework-agnostic **auto-layout skeleton loader** library. Instead of hand-made
 - `registerLayouts(file)` loads shipped layouts (`{ version: 1, layouts: { [name]: LayoutSnapshot[] } }`).
 - `exportLayouts()` merges shipped and recorded layouts into that file and downloads `autobones.layouts.json`. It is also on `window.autobones` for console use.
 - `clearLayouts(name?)` forgets the user's own and recorded layouts, never shipped ones.
+- **Tone:** a snapshot records `tone` (`"light"` or `"dark"`, from `toneOf()`, which reads the first opaque background at or above the root, falling back to `prefers-color-scheme`). Surface bones carry fixed colors in `style` plus a theme-neutral twin in `plain` (transparent background, border in `var(--ab-base)`, no shadow). When a remembered layout is replayed and the page's tone differs from the recorded one, surfaces use `plain` (or `PLAIN_SURFACE` for files that have none). Snapshots without `tone` (older files) are drawn as recorded. Only surfaces carry fixed colors; the shimmering bones always follow the theme through CSS variables. This avoids a light card on a dark page, but does not store separate light and dark recordings.
 
 ## Loading states
 - `delay`: content is hidden immediately but bones appear only after the delay; if loading ends first, nothing is ever shown.
@@ -50,13 +51,13 @@ Framework-agnostic **auto-layout skeleton loader** library. Instead of hand-made
 - Core, React adapter and Web Component were verified in Chrome (light/dark, mobile width, memory, shipped layouts, delay/minDuration/fade).
 - The tsup build is verified (typecheck, publint, attw, and a clean-copy run of the CI and Netlify build commands).
 - Vue (`<Skeleton>` and `v-skeleton`, boolean and options forms) and the Svelte action were smoke-tested in Chrome: show/hide, restart, live option changes, unmount/destroy cleanup. That used hand-written render functions and calling the action directly, so **single-file components and the Svelte compiler were not exercised**, and there is no `examples/vue` or `examples/svelte` yet.
-- **Automated tests:** 157 Playwright tests pass in Chromium, Firefox and WebKit (14 Node-only ones run once), three full runs in a row with no flakes. They cover measuring, rounded corners, dark mode and reduced motion, `delay`/`minDuration`/`fade`, layout memory and shipped layouts, the React adapter (refs, StrictMode, live option updates), the Vue component and directive, the Svelte action, and the built package (ESM/CJS, SSR). Several were checked by deliberately breaking the library and confirming the right test fails. CI runs them on Node 22.
+- **Automated tests:** 181 Playwright tests pass in Chromium, Firefox and WebKit (14 Node-only ones run once), three full runs in a row with no flakes. They cover measuring, rounded corners, dark mode and reduced motion, `delay`/`minDuration`/`fade`, layout memory and shipped layouts (including a layout recorded in one theme and shown in the other), the React adapter (refs, StrictMode, live option updates), the Vue component and directive, the Svelte action, and the built package (ESM/CJS, SSR). Several were checked by deliberately breaking the library and confirming the right test fails. CI runs them on Node 22.
 - **Still not covered:** Vue and Svelte single-file components and the Svelte compiler (the adapters are tested through render functions and a direct action call), React 17, real touch devices, and performance with 200+ items.
 - Known issues are listed in PLAN.md section 2.3.
 
 ## Conventions
 - Zero runtime dependencies; frameworks are optional peer dependencies.
-- Keep the core small (currently about 5.1 KB gzipped); check size after changes (`gzip -9c dist/chunk-*.js | wc -c`).
+- Keep the core small (currently about 5.4 KB gzipped); check size after changes (`gzip -9c dist/chunk-*.js | wc -c`).
 - `scripts/use-client.mjs` prepends `"use client"` to `dist/react.js` and `dist/react.cjs` after tsup (esbuild drops module-level directives). It runs as part of `npm run build`; the React entry must keep it so Next.js App Router users can import it from Server Component files.
 - `package.json` `exports` uses nested `import`/`require` conditions with their own `types` (`.d.ts` / `.d.cts`), plus `typesVersions` for node10. Verify with `npx @arethetypeswrong/cli --pack .` after changing it.
 - Never store user text in saved layouts, only geometry and colors.

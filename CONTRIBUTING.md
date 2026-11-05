@@ -65,6 +65,7 @@ What is covered, in `tests/e2e/`:
 | `core.spec.ts` | Measuring and drawing: text, media, boxes, surfaces, rounded corners, dark mode, reduced motion, resizing |
 | `states.spec.ts` | `delay`, `minDuration`, restarting while loading, `fade` |
 | `memory.spec.ts` | Layout memory, reload, shipped layouts at several widths, export and import |
+| `themes.spec.ts` | A layout recorded in a light page and shown in a dark one, and the other way round |
 | `react.spec.ts` | The React `<Skeleton>`, `useSkeleton`, refs, StrictMode, unmounting |
 | `vue-svelte.spec.ts` | The Vue component and directive, and the Svelte action |
 | `package.spec.ts` | The built package in plain Node: every entry as ESM and CJS, server rendering, `style.css` |

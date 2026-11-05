@@ -18,6 +18,11 @@
       p { margin: 0 0 12px; font-size: 14px; color: #555; }
       .actions { display: flex; gap: 8px; }
       .actions button { font: inherit; font-size: 14px; padding: 6px 12px; }
+      /* A real dark theme, so tests can show the same page in both tones. */
+      @media (prefers-color-scheme: dark) {
+        body { background: #0e1015; color: #eee; }
+        .card { background: #1a1d24; border-color: #2a2d34; }
+      }
     </style>
     <script src="/tests/fixtures/probe.js"></script>
   </head>

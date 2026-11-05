@@ -187,6 +187,8 @@ A shipped layout beats the user's own only if it was captured at a clearly close
 
 Re-export after you change a component's layout. A file from an incompatible version is ignored with a console warning instead of breaking.
 
+**Light and dark.** The bones always follow the visitor's theme. A card's own background and border are recorded in whatever theme you captured them in. If a visitor's page has the opposite tone (a light recording shown on a dark page, or the other way round), autobones draws a neutral outline in the bone color instead of the wrong colors, so a white card never appears on a dark page. It judges the tone from the page's actual backgrounds, so it works with your own theme switch, not only the operating system setting. Record in the theme most of your visitors use.
+
 ## No flicker
 
 ```tsx
