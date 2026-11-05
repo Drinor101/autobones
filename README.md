@@ -11,6 +11,12 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/Drinor101/autobones" alt="License: MIT" /></a>
 </p>
 
+<p align="center">
+  <a href="https://autobones.netlify.app"><strong>Live demo</strong></a> ·
+  <a href="#install">Install</a> ·
+  <a href="https://github.com/Drinor101/autobones/issues">Issues</a>
+</p>
+
 Auto-layout skeleton loaders. Instead of hand-drawing placeholder shapes, autobones renders **your real component**, measures its text lines, images, avatars, buttons and cards, then draws matching skeleton bones on top. Change the component and the skeleton updates itself.
 
 - Works with **React, Vue, Svelte, Web Components and plain JS**
