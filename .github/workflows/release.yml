@@ -1,0 +1,29 @@
+name: Release
+
+# Pushing a version tag such as v0.1.0 creates the GitHub Release for it.
+# Notes come from .github/release-notes/<tag>.md when that file exists, otherwise from the commit history.
+# Publishing to npm is still done by hand.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create the GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ -f "$notes" ]; then
+            gh release create "$GITHUB_REF_NAME" --title "autobones ${GITHUB_REF_NAME#v}" --notes-file "$notes" --verify-tag
+          else
+            gh release create "$GITHUB_REF_NAME" --title "autobones ${GITHUB_REF_NAME#v}" --generate-notes --verify-tag
+          fi

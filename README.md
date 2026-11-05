@@ -7,12 +7,13 @@
 <p align="center"><strong>Skeleton loaders that build themselves from your real UI.</strong></p>
 
 <p align="center">
+  <a href="https://www.npmjs.com/package/autobones"><img src="https://img.shields.io/npm/v/autobones" alt="npm version" /></a>
   <a href="https://github.com/Drinor101/autobones/actions/workflows/ci.yml"><img src="https://github.com/Drinor101/autobones/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/Drinor101/autobones/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Drinor101/autobones" alt="License: MIT" /></a>
 </p>
 
 <p align="center">
-  <a href="https://autobones.netlify.app"><strong>Live demo</strong></a> ·
+  <a href="https://autobones.netlify.app">Live demo</a> ·
   <a href="#install">Install</a> ·
   <a href="https://github.com/Drinor101/autobones/issues">Issues</a>
 </p>
