@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="site/public/logo.svg" width="88" height="88" alt="autobones logo" />
+  <img src="https://raw.githubusercontent.com/Drinor101/autobones/main/site/public/logo.svg" width="88" height="88" alt="autobones logo" />
 </p>
 
 <h1 align="center">autobones</h1>
@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/Drinor101/autobones/actions/workflows/ci.yml"><img src="https://github.com/Drinor101/autobones/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/Drinor101/autobones" alt="License: MIT" /></a>
+  <a href="https://github.com/Drinor101/autobones/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Drinor101/autobones" alt="License: MIT" /></a>
 </p>
 
 <p align="center">
@@ -254,7 +254,7 @@ npm run typecheck
 npm run demo       # open http://localhost:3000/demo/
 ```
 
-A React app that uses the library from this folder is in [`examples/react`](examples/react). See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
+A React app that uses the library from this folder is in [`examples/react`](https://github.com/Drinor101/autobones/tree/main/examples/react). See [CONTRIBUTING.md](https://github.com/Drinor101/autobones/blob/main/CONTRIBUTING.md) for the full workflow.
 
 ## License
 
