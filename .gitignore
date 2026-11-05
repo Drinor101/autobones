@@ -6,9 +6,12 @@ dist
 style.css
 *.tgz
 
-# tooling
+# tooling and test output
 .playwright-mcp
 .DS_Store
+test-results
+playwright-report
+tests/.generated
 
 # personal roadmap, kept on my machine only
 PLAN.md

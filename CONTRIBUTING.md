@@ -47,15 +47,44 @@ The landing page in `site/` works the same way (`cd site && npm install && npm r
 - **Never store user text** in saved layouts. Only geometry and colors.
 - **Wrap `localStorage`** in try/catch.
 
+## Tests
+
+The tests run the real built library (`dist/`) in real browsers: Chromium, Firefox and WebKit (Safari's engine), using [Playwright](https://playwright.dev).
+
+```bash
+npm run test:install   # once: downloads the three browsers
+npm test               # builds, then runs everything
+npm run test:e2e       # runs everything without rebuilding
+npx playwright test core.spec.ts --project=chromium   # one file, one browser
+```
+
+What is covered, in `tests/e2e/`:
+
+| File | What it checks |
+| --- | --- |
+| `core.spec.ts` | Measuring and drawing: text, media, boxes, surfaces, rounded corners, dark mode, reduced motion, resizing |
+| `states.spec.ts` | `delay`, `minDuration`, restarting while loading, `fade` |
+| `memory.spec.ts` | Layout memory, reload, shipped layouts at several widths, export and import |
+| `react.spec.ts` | The React `<Skeleton>`, `useSkeleton`, refs, StrictMode, unmounting |
+| `vue-svelte.spec.ts` | The Vue component and directive, and the Svelte action |
+| `package.spec.ts` | The built package in plain Node: every entry as ESM and CJS, server rendering, `style.css` |
+
+Things worth knowing when you add a test:
+
+- **Fixtures** are small HTML pages in `tests/fixtures/` that load `dist/`. `tests/serve.mjs` serves them and bundles the React one (React is CommonJS, so a browser cannot load it directly).
+- **Timing tests run inside the page.** Waiting from outside the browser lets a slow machine eat the margins and makes tests flaky, so `states.spec.ts` does each whole sequence in one `page.evaluate`.
+- **Check that a new test can fail.** Break the code on purpose, confirm the test goes red, then restore it.
+- If Firefox crashes with a graphics error on your machine, lower `workers` in `playwright.config.ts`.
+
 ## Before you open a pull request
 
 ```bash
 npm run typecheck
-npm run build
+npm test
 npx publint
 ```
 
-CI runs the same checks, plus a type-resolution check of every entry point and a build of the React example.
+CI runs the same checks, plus a type-resolution check of every entry point and builds of the React example and the landing page.
 
 In the pull request, say what changed and why, and what you checked by hand (browser, framework, light and dark). If it fixes a bug, a small reproduction in the description helps a lot.
 

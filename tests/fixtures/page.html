@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>autobones test fixture</title>
+    <style>
+      body { margin: 0; padding: 16px; font: 16px/1.5 Arial, Helvetica, sans-serif; background: #fff; color: #111; }
+      .card { width: 100%; max-width: 320px; box-sizing: border-box; border: 1px solid #c8cbe0; border-radius: 14px; overflow: hidden; background: #fff; }
+      .cover { display: block; width: 100%; height: 120px; object-fit: cover; }
+      .card-body { padding: 16px; }
+      .author { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+      .frame { flex: none; display: block; width: 40px; height: 40px; border-radius: 50%; overflow: hidden; }
+      .frame img { display: block; width: 100%; height: 100%; }
+      .dot { flex: none; width: 12px; height: 12px; border-radius: 50%; background: #e44; }
+      .name { font-weight: 600; font-size: 14px; }
+      .meta { font-size: 12px; color: #666; }
+      h3 { margin: 0 0 6px; font-size: 18px; line-height: 1.3; }
+      p { margin: 0 0 12px; font-size: 14px; color: #555; }
+      .actions { display: flex; gap: 8px; }
+      .actions button { font: inherit; font-size: 14px; padding: 6px 12px; }
+    </style>
+    <script src="/tests/fixtures/probe.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import * as ab from "/dist/index.js";
+      window.ab = ab;
+      window.sk = {};
+      window.ready = true;
+    </script>
+  </body>
+</html>

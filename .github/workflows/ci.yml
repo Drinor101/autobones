@@ -38,6 +38,23 @@ jobs:
       # Checks that TypeScript resolves the types for every entry point, as ESM and as CommonJS.
       - run: npx --yes @arethetypeswrong/cli --pack . --exclude-entrypoints ./style.css
 
+      # Real-browser tests: Chromium, Firefox and WebKit. They run once, on the newest Node.
+      - name: Install the test browsers
+        if: matrix.node == 22
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Run the browser tests
+        if: matrix.node == 22
+        run: npm run test:e2e
+
+      - name: Keep the test report when a test fails
+        if: failure() && matrix.node == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
       # The React example and the landing page install the library from this folder,
       # so building them checks the real build output.
       - name: Build the React example

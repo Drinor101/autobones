@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>autobones Vue and Svelte fixture</title>
+    <style>
+      body { margin: 0; padding: 16px; font: 16px/1.5 Arial, Helvetica, sans-serif; background: #fff; color: #111; }
+      .card { width: 100%; max-width: 320px; box-sizing: border-box; border: 1px solid #c8cbe0; border-radius: 14px; padding: 12px; margin-bottom: 12px; background: #fff; }
+      h3 { margin: 0 0 6px; }
+      p { margin: 0 0 8px; font-size: 14px; }
+    </style>
+    <script type="importmap">
+      { "imports": { "vue": "/node_modules/vue/dist/vue.esm-browser.js" } }
+    </script>
+    <script src="/tests/fixtures/probe.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div id="svelte-node" class="card"><h3>Svelte action</h3><p>Body text for the action.</p><button>Go</button></div>
+    <script type="module">
+      import { createApp, h, ref, withDirectives } from "vue";
+      import { Skeleton, vSkeleton } from "/dist/vue.js";
+      import { skeleton } from "/dist/svelte.js";
+
+      const loading = ref(true);
+      const animation = ref("shimmer");
+      const card = (title) => h("div", { class: "card" }, [h("h3", title), h("p", "Body text for " + title), h("button", "Go")]);
+
+      // Hand-written render functions, so no single-file-component compiler is needed.
+      const App = {
+        render() {
+          return h("div", [
+            h(Skeleton, { id: "v-comp", loading: loading.value, animation: animation.value, fade: 0 }, () => card("component")),
+            withDirectives(h("div", { id: "v-bool" }, [card("boolean directive")]), [[vSkeleton, loading.value]]),
+            withDirectives(h("div", { id: "v-obj" }, [card("options directive")]), [
+              [vSkeleton, { loading: loading.value, animation: animation.value, fade: 0 }],
+            ]),
+          ]);
+        },
+      };
+
+      let app = null;
+      let action = null;
+      window.vt = {
+        loading,
+        animation,
+        mount() {
+          app = createApp(App);
+          app.mount("#root");
+        },
+        unmount() {
+          app?.unmount();
+          app = null;
+        },
+        svelteCreate(params) {
+          action = skeleton(document.getElementById("svelte-node"), params);
+        },
+        svelteUpdate(params) {
+          action.update(params);
+        },
+        svelteDestroy() {
+          action.destroy();
+        },
+      };
+      window.ready = true;
+    </script>
+  </body>
+</html>

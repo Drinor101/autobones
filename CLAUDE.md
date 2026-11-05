@@ -36,19 +36,22 @@ Framework-agnostic **auto-layout skeleton loader** library. Instead of hand-made
 - `src/element.ts`: `<auto-skeleton>` Web Component (SSR-safe base class)
 - `scripts/write-css.mjs`: writes `style.css` from `STYLES` for strict-CSP users
 - `demo/index.html`: demo page using `dist/`
+- `tests/` and `playwright.config.ts`: the test suite. `tests/e2e/*.spec.ts` are the tests, `tests/fixtures/` are small HTML pages that load `dist/` (`probe.js` is a shared in-page helper that summarizes a skeleton's DOM), and `tests/serve.mjs` serves the repo root and bundles the React fixture with esbuild (output in `tests/.generated/`, git-ignored). Timing tests (`states.spec.ts`) run their whole sequence inside one `page.evaluate` so a slow machine cannot eat the margins. `package.spec.ts` runs in plain Node and only on the chromium project.
 - `site/`: the public landing page (Vite + React 19, `cd site && npm run dev`), deployed to Netlify by `netlify.toml` (it builds the library first, then the site, and publishes `site/dist`). It uses the real library via `file:..` and dedupes React like `examples/react`. Its "Measured" hero view draws the output of the library's own `measureBones()`. `vite.config.ts` writes Netlify's `URL` into the Open Graph tags so link previews get an absolute image address. `public/og.png` (1200x630) and `public/apple-touch-icon.png` are generated images; `public/logo.svg` is the logo source (also used in the README).
 - `examples/react`: Vite + React 19 app (`cd examples/react && npm run dev`) with `<Skeleton>` (placeholder data and layout-memory-only) and `useSkeleton`. It depends on `file:../..` and `vite.config.ts` dedupes React, because the linked package resolves the root's React 18 devDependency otherwise. After changing `src/`, run `npm run build` in the root first.
 
 ## Commands
 - `npm run build`: tsup (ESM + CJS + .d.ts) then writes style.css
 - `npm run typecheck`
+- `npm test`: build, then the whole Playwright suite (Chromium, Firefox, WebKit). `npm run test:e2e` skips the build. `npm run test:install` downloads the browsers once.
 - `npm run demo`: build and serve; open `/demo/`
 
 ## Status and known gaps
 - Core, React adapter and Web Component were verified in Chrome (light/dark, mobile width, memory, shipped layouts, delay/minDuration/fade).
 - The tsup build is verified (typecheck, publint, attw, and a clean-copy run of the CI and Netlify build commands).
 - Vue (`<Skeleton>` and `v-skeleton`, boolean and options forms) and the Svelte action were smoke-tested in Chrome: show/hide, restart, live option changes, unmount/destroy cleanup. That used hand-written render functions and calling the action directly, so **single-file components and the Svelte compiler were not exercised**, and there is no `examples/vue` or `examples/svelte` yet.
-- **Not yet verified:** Firefox/WebKit, and there is no automated test suite yet (PLAN.md section 2).
+- **Automated tests:** 157 Playwright tests pass in Chromium, Firefox and WebKit (14 Node-only ones run once), three full runs in a row with no flakes. They cover measuring, rounded corners, dark mode and reduced motion, `delay`/`minDuration`/`fade`, layout memory and shipped layouts, the React adapter (refs, StrictMode, live option updates), the Vue component and directive, the Svelte action, and the built package (ESM/CJS, SSR). Several were checked by deliberately breaking the library and confirming the right test fails. CI runs them on Node 22.
+- **Still not covered:** Vue and Svelte single-file components and the Svelte compiler (the adapters are tested through render functions and a direct action call), React 17, real touch devices, and performance with 200+ items.
 - Known issues are listed in PLAN.md section 2.3.
 
 ## Conventions
