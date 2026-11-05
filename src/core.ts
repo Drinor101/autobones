@@ -517,6 +517,52 @@ const prefersReducedMotion = () =>
 /* Controller                                                          */
 /* ------------------------------------------------------------------ */
 
+/** What one redraw needs, worked out by reading the page only (see `plan` in createSkeleton). */
+interface Plan {
+  bones: Bone[];
+  /** A remembered layout is being drawn: keep this much height (px) so the page does not jump. */
+  reserve?: number;
+  /** Real content is being measured again: give back any height reserved earlier. */
+  release?: boolean;
+}
+
+interface Redraw {
+  /** Takes the overlay off, so it cannot change the layout being measured. */
+  detach(): void;
+  plan(): Plan;
+  /** `null` when planning failed: just put the old bones back. */
+  apply(plan: Plan | null): void;
+}
+
+/**
+ * Redraws wait here, so every skeleton on the page is handled in one animation frame, in three passes:
+ * take all overlays off, measure all, draw all. Doing a skeleton at a time makes each measurement pay for
+ * the previous skeleton's writes, which gets slow with hundreds of skeletons (a list of cards).
+ */
+const pending = new Set<Redraw>();
+let flushFrame = 0;
+
+function queueRedraw(job: Redraw) {
+  pending.add(job);
+  if (!flushFrame) flushFrame = requestAnimationFrame(flushRedraws);
+}
+
+function flushRedraws() {
+  flushFrame = 0;
+  const jobs = [...pending];
+  pending.clear();
+  for (const job of jobs) job.detach();
+  const plans = jobs.map((job) => {
+    try {
+      return job.plan();
+    } catch (error) {
+      console.error(error);
+      return null; // one broken skeleton must not leave the others without their bones
+    }
+  });
+  jobs.forEach((job, i) => job.apply(plans[i]));
+}
+
 export function createSkeleton(
   root: HTMLElement,
   initialOptions: SkeletonOptions = {},
@@ -528,7 +574,7 @@ export function createSkeleton(
   let shownAt = 0;
   let overlay: HTMLDivElement | null = null;
   let fadingOverlay: HTMLDivElement | null = null;
-  let frame = 0;
+  let lastDrawn = ""; // what the overlay shows now, so bones that did not change are not rebuilt
   let delayTimer: ReturnType<typeof setTimeout> | undefined;
   let stopTimer: ReturnType<typeof setTimeout> | undefined;
   let fadeTimer: ReturnType<typeof setTimeout> | undefined;
@@ -549,70 +595,91 @@ export function createSkeleton(
     root.setAttribute("data-ab-animation", opts.animation ?? "shimmer");
   };
 
-  const setMinHeight = (borderBoxHeight: number) => {
-    if (savedMinHeight === null) savedMinHeight = root.style.minHeight;
-    const cs = getComputedStyle(root);
-    const extra =
-      cs.boxSizing === "border-box"
-        ? 0
-        : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
-    root.style.minHeight = `${Math.max(0, borderBoxHeight - extra)}px`;
-  };
-
   const restoreMinHeight = () => {
     if (savedMinHeight === null) return;
     root.style.minHeight = savedMinHeight;
     savedMinHeight = null;
   };
 
-  /** Live bones from the rendered content, or the remembered layout when there's nothing to measure. */
-  const resolveBones = (): Bone[] => {
+  /**
+   * Reads only, never writes: the bones from the rendered content or, when there is nothing to measure,
+   * from the remembered layout. Keeping the writes out of here is what lets many skeletons be measured together.
+   */
+  const plan = (): Plan => {
     const live = measureBones(root, opts);
-    if (hasLive(live) || !opts.name) {
-      if (savedMinHeight !== null && hasLive(live)) restoreMinHeight();
-      return live;
-    }
+    if (hasLive(live) || !opts.name) return { bones: live, release: hasLive(live) };
     const snap = findLayout(opts.name, root.clientWidth);
-    if (!snap) return live;
+    if (!snap) return { bones: live };
     const width = root.clientWidth || snap.width;
     const sx = snap.width ? width / snap.width : 1;
-    setMinHeight(snap.height);
+    const cs = getComputedStyle(root);
+    const extra =
+      cs.boxSizing === "border-box"
+        ? 0
+        : parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) + parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
     // Colors recorded in a light page look wrong on a dark one (and the other way round), so draw a neutral outline instead.
     const toneChanged = !!snap.tone && snap.tone !== toneOf(root);
-    return snap.bones.map((b) => ({
-      ...b,
-      x: b.x * sx,
-      width: b.width * sx,
-      ...(toneChanged && b.kind === "surface" ? { style: b.plain ?? PLAIN_SURFACE } : {}),
-    }));
+    return {
+      reserve: Math.max(0, snap.height - extra),
+      bones: snap.bones.map((b) => ({
+        ...b,
+        x: b.x * sx,
+        width: b.width * sx,
+        ...(toneChanged && b.kind === "surface" ? { style: b.plain ?? PLAIN_SURFACE } : {}),
+      })),
+    };
   };
 
-  const render = () => {
-    frame = 0;
+  /** Writes only: draws a plan, and leaves the bones alone if they are exactly what is already there. */
+  const apply = (p: Plan | null) => {
     if (!shown || !overlay) return;
-    // Measure with the overlay detached so it can't affect layout.
-    overlay.remove();
-    const bones = resolveBones();
-    const frag = doc.createDocumentFragment();
-    for (const b of bones) {
-      const d = doc.createElement("div");
-      d.dataset.kind = b.kind;
-      d.style.cssText = `left:${b.x}px;top:${b.y}px;width:${b.width}px;height:${b.height}px;border-radius:${b.radius}`;
-      if (b.kind === "surface") {
-        d.className = "ab-surface";
-        d.style.cssText += `;box-sizing:border-box;${b.style}`;
-      } else d.className = BONE_CLASS;
-      frag.appendChild(d);
+    if (p) {
+      if (p.reserve !== undefined) {
+        if (savedMinHeight === null) savedMinHeight = root.style.minHeight;
+        root.style.minHeight = `${p.reserve}px`;
+      } else if (p.release) restoreMinHeight();
+      const css = p.bones.map(
+        (b) =>
+          `left:${b.x}px;top:${b.y}px;width:${b.width}px;height:${b.height}px;border-radius:${b.radius}` +
+          (b.kind === "surface" ? `;box-sizing:border-box;${b.style}` : ""),
+      );
+      const drawn = p.bones.map((b, i) => b.kind + css[i]).join("\n");
+      if (drawn !== lastDrawn) {
+        lastDrawn = drawn;
+        const frag = doc.createDocumentFragment();
+        p.bones.forEach((b, i) => {
+          const d = doc.createElement("div");
+          d.dataset.kind = b.kind;
+          d.className = b.kind === "surface" ? "ab-surface" : BONE_CLASS;
+          d.style.cssText = css[i];
+          frag.appendChild(d);
+        });
+        overlay.replaceChildren(frag);
+      }
     }
-    overlay.replaceChildren(frag);
     root.appendChild(overlay);
     // Discard the mutations we just caused so we don't re-render in a loop.
     mutationObs?.takeRecords();
   };
 
-  const schedule = () => {
-    if (!frame) frame = requestAnimationFrame(render);
+  const redraw: Redraw = {
+    // Measure with the overlay detached so it can't affect layout (`:last-child`, `:only-child` and the like).
+    detach: () => {
+      if (shown && overlay) overlay.remove();
+    },
+    plan,
+    apply,
   };
+
+  /** Redraw right now, for this skeleton alone. */
+  const render = () => {
+    pending.delete(redraw);
+    redraw.detach();
+    apply(plan());
+  };
+
+  /** Redraw in the next animation frame, together with every other skeleton that asked. */
+  const schedule = () => queueRedraw(redraw);
 
   const observe = () => {
     if (opts.observe === false) return;
@@ -698,6 +765,7 @@ export function createSkeleton(
     overlay = doc.createElement("div");
     overlay.className = OVERLAY_CLASS;
     overlay.setAttribute("aria-hidden", "true");
+    lastDrawn = "";
     render(); // synchronous first paint: no flash of real content
     observe();
   };
@@ -706,8 +774,7 @@ export function createSkeleton(
     stopTimer = undefined;
     shown = false;
     unobserve();
-    if (frame) cancelAnimationFrame(frame);
-    frame = 0;
+    pending.delete(redraw);
     restoreMinHeight();
     showContent();
     const ov = overlay;
@@ -792,7 +859,7 @@ export function createSkeleton(
       if (shown) {
         shown = false;
         unobserve();
-        if (frame) cancelAnimationFrame(frame);
+        pending.delete(redraw);
         overlay?.remove();
         overlay = null;
       }

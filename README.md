@@ -248,6 +248,20 @@ Re-export after you change a component's layout. A file from an incompatible ver
 - Without them, placeholder data of about the real length gives the best skeleton.
 - Give images a size (`width`/`height` or `aspect-ratio`) so they take up space before they load.
 
+### Long lists
+
+A skeleton per card is fine. When the page resizes, every skeleton redraws together in a single animation frame, and bones that did not move are left alone.
+
+Measured in Chromium on a Windows PC, with a separate skeleton around each card (about 10 bones per card):
+
+| Cards | Bones | Shimmer animation | Resize |
+| --- | --- | --- | --- |
+| 200 | 2,000 | smooth, 60 fps | one brief hitch, about 70 ms |
+| 500 | 5,000 | about 35 fps | about 0.3 to 0.7 s |
+| 1,000 | 10,000 | about 16 fps (60 fps with `animation: "none"`) | about 0.4 s |
+
+The shimmer paints every bone on every frame, so its cost grows with the number of bones. `pulse` is no cheaper: in the same test it was slower at 1,000 cards. For a very long list, set `animation="none"`, or only render as many placeholder cards as fit on screen (ten or so) rather than the whole list. Your numbers will differ with the device, so measure on a slow phone if that matters to you.
+
 ## Development
 
 ```bash
